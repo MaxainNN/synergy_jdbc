@@ -19,10 +19,21 @@ public class MongoDBCRUD {
     private final MongoClient mongoClient;
     private final MongoDatabase database;
     private final MongoCollection<Document> collection;
+    private final boolean isDropNeeded;
 
     public MongoDBCRUD(String connectionString, String dbName, String collectionName) {
+        this(connectionString, dbName, collectionName, false);
+    }
+
+    public MongoDBCRUD(String connectionString, String dbName, String collectionName, boolean isDropNeeded) {
         this.mongoClient = MongoClients.create(connectionString);
         this.database = mongoClient.getDatabase(dbName);
+        this.isDropNeeded = isDropNeeded;
+
+        if (isDropNeeded) {
+            database.getCollection(collectionName).drop();
+        }
+
         this.collection = database.getCollection(collectionName);
     }
 
@@ -35,9 +46,28 @@ public class MongoDBCRUD {
     }
 
     /**
+     * Get current collection instance
+     * @return current collection of documents
+     */
+    public MongoCollection<Document> getCollection() {
+        return this.collection;
+    }
+
+    /**
+     * Drop current collection
+     */
+    public void drop() {
+        collection.drop();
+        System.out.println("Collection " + collection.getNamespace() + " has been dropped.");
+    }
+
+    /**
      * Create collection
      */
     public void createCollection(){
+        if (isDropNeeded) {
+            drop();
+        }
         database.createCollection(collection.getNamespace().getCollectionName());
         System.out.println("Collection has been created");
     }

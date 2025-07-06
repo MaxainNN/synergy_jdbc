@@ -120,18 +120,60 @@ and `Kibana`.
 
 #### Kibana:
 
+<img src="images/06.07_elastic_1.png" height="420" width="940">
+
+<img src="images/06.07_elastic_2.png" width="940" height="420">
+
+<img src="images/06.07_elastic_4.png" height="400" width="600">
+
+### Handle error :
+
 ```text
-GET /books/_search
-{
-    "query": {
-        "match": { "title": "war" }
-    }
+Error: [es/index] failed: [document_parsing_exception] 
+[1:8] failed to parse field [_id] of type [_id] in 
+document with id '1'. Preview of field's value: '1'
+```
+
+Error was because of wrong type field "_id" : 
+
+First realization `indexDocument` method:
+
+```java
+import org.bson.Document;
+
+public Result indexDocument(String index, String id, Document document) throws IOException {
+   IndexRequest<Document> request = IndexRequest.of(b -> b
+           .index(index)
+           .id(id)
+           .document(document)
+   );
+
+   IndexResponse response = client.index(request);
+   return response.result();
 }
 ```
-```text
-GET /books/_search
-{
-    "query": { "match_all": {} }
+
+Solution :
+
+```java
+import org.bson.Document;
+
+public Result indexDocument(String index, String id, Document document) throws IOException {
+   Map<String, Object> source = new HashMap<>();
+   document.forEach((key, value) -> {
+      if (!"_id".equals(key)) {
+         source.put(key, value);
+      }
+   });
+
+   IndexRequest<Map<String, Object>> request = IndexRequest.of(b -> b
+           .index(index)
+           .id(id)
+           .document(source)
+   );
+
+   IndexResponse response = client.index(request);
+   return response.result();
 }
 ```
 
@@ -141,7 +183,7 @@ GET /books/_search
 flowchart TD
     A[MongoDBApp] -->|CRUD| B[(MongoDB)]
     A -->|Caching| C[(Redis)]
-    A -->|Indexing/Searching| D[(ElasticSearch)]
+    A -->|Indexing| D[(ElasticSearch)]
     B -->|Authors/Books data| A
     C -->|Cached documents| A
     D -->|Searching results| A
@@ -160,14 +202,6 @@ flowchart TD
     style B fill:SpringGreen,stroke:#333
     style C fill:Crimson,stroke:#333
     style D fill:#FF8C00,stroke:#333
-```
-
-### Handle error :
-
-```text
-Error: [es/index] failed: [document_parsing_exception] 
-[1:8] failed to parse field [_id] of type [_id] in 
-document with id '1'. Preview of field's value: '1'
 ```
 
 ### Run project :

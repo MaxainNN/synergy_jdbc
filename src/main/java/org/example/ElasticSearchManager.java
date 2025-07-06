@@ -15,7 +15,9 @@ import org.bson.Document;
 import org.elasticsearch.client.RestClient;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -41,10 +43,17 @@ public class ElasticSearchManager {
      * @return result of operation
      */
     public Result indexDocument(String index, String id, Document document) throws IOException {
-        IndexRequest<Document> request = IndexRequest.of(b -> b
+        Map<String, Object> source = new HashMap<>();
+        document.forEach((key, value) -> {
+            if (!"_id".equals(key)) {
+                source.put(key, value);
+            }
+        });
+
+        IndexRequest<Map<String, Object>> request = IndexRequest.of(b -> b
                 .index(index)
                 .id(id)
-                .document(document)
+                .document(source)
         );
 
         IndexResponse response = client.index(request);

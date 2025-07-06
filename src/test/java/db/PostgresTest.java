@@ -6,21 +6,20 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+//TODO Fix test
 public class PostgresTest {
     private static Connection connection;
     private static PostgresApp postgresApp;
 
     @BeforeAll
     static void setUp() throws SQLException {
-        // Use H2 for tests
         connection = DriverManager.getConnection("jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1", "sa", "");
         postgresApp = new PostgresApp();
 
@@ -57,58 +56,58 @@ public class PostgresTest {
     @Test
     @DisplayName("Should return correct organizations count")
     void testPrintOrganizationsCount() throws SQLException {
-//        var outContent = new java.io.ByteArrayOutputStream();
-//        System.setOut(new java.io.PrintStream(outContent));
-//        postgresApp.printOrganizationsCount(connection);
-//        String output = outContent.toString();
-//        assertTrue(output.contains("2"));
+        java.io.ByteArrayOutputStream outContent = new java.io.ByteArrayOutputStream();
+        System.setOut(new java.io.PrintStream(outContent));
+        postgresApp.printOrganizationsCount(connection);
+        String output = outContent.toString();
+        assertTrue(output.contains("2"));
     }
 
     @Test
     @DisplayName("Should group organizations by legal type correctly")
     void testPrintOrganizationsByLegalType() throws SQLException {
-//        var outContent = new java.io.ByteArrayOutputStream();
-//        System.setOut(new java.io.PrintStream(outContent));
-//
-//        app.printOrganizationsByLegalType(connection);
-//        String output = outContent.toString();
-//
-//        assertAll(
-//                () -> assertTrue(output.contains("Legal Entity")),
-//                () -> assertTrue(output.contains("Individual")),
-//                () -> assertTrue(output.contains("30000.00")),
-//                () -> assertTrue(output.contains("15000.00"))
-//        );
+        java.io.ByteArrayOutputStream outContent = new java.io.ByteArrayOutputStream();
+        System.setOut(new java.io.PrintStream(outContent));
+
+        postgresApp.printOrganizationsByLegalType(connection);
+        String output = outContent.toString();
+
+        assertAll(
+                () -> assertTrue(output.contains("Legal Entity")),
+                () -> assertTrue(output.contains("Individual")),
+                () -> assertTrue(output.contains("30000.00")),
+                () -> assertTrue(output.contains("15000.00"))
+        );
     }
 
     @Test
     @DisplayName("Should display all organizations with details")
     void testPrintAllOrganizationsDetails() throws SQLException {
-//        var outContent = new java.io.ByteArrayOutputStream();
-//        System.setOut(new java.io.PrintStream(outContent));
-//
-//        app.printAllOrganizationsDetails(connection);
-//        String output = outContent.toString();
-//
-//        assertAll(
-//                () -> assertTrue(output.contains("org1@test.com")),
-//                () -> assertTrue(output.contains("org2@test.com")),
-//                () -> assertTrue(output.contains("Moscow")),
-//                () -> assertTrue(output.contains("London"))
-//        );
+        java.io.ByteArrayOutputStream outContent = new java.io.ByteArrayOutputStream();
+        System.setOut(new java.io.PrintStream(outContent));
+
+        postgresApp.printAllOrganizationsDetails(connection);
+        String output = outContent.toString();
+
+        assertAll(
+                () -> assertTrue(output.contains("org1@test.com")),
+                () -> assertTrue(output.contains("org2@test.com")),
+                () -> assertTrue(output.contains("Moscow")),
+                () -> assertTrue(output.contains("London"))
+        );
     }
 
     @Test
     @DisplayName("Should handle SQL injection attempts safely")
     void testSqlInjectionSafety() throws SQLException {
-//        assertDoesNotThrow(() -> {
-//            Connection mockConn = mock(Connection.class);
-//            PreparedStatement mockStmt = mock(PreparedStatement.class);
-//
-//            when(mockConn.prepareStatement(anyString())).thenReturn(mockStmt);
-//            when(mockStmt.executeQuery()).thenReturn(mock(ResultSet.class));
-//
-//            app.printOrganizationsCount(mockConn);
-//        });
+        assertDoesNotThrow(() -> {
+            Connection mockConn = mock(Connection.class);
+            PreparedStatement mockStmt = mock(PreparedStatement.class);
+
+            when(mockConn.prepareStatement(anyString())).thenReturn(mockStmt);
+            when(mockStmt.executeQuery()).thenReturn(mock(ResultSet.class));
+
+            postgresApp.printOrganizationsCount(mockConn);
+        });
     }
 }

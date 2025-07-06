@@ -21,19 +21,19 @@ public class MongoDBApp {
     private static final int ES_PORT = 9200;
 
     public static void main(String[] args) {
-        MongoDBCRUD authorsCRUD = new MongoDBCRUD(MONGO_URI, MONGO_DB, "authors");
-        MongoDBCRUD booksCRUD = new MongoDBCRUD(MONGO_URI, MONGO_DB, "books");
+        MongoDBCRUD authorsCRUD = new MongoDBCRUD(MONGO_URI, MONGO_DB, "authors",true);
+        MongoDBCRUD booksCRUD = new MongoDBCRUD(MONGO_URI, MONGO_DB, "books",true);
         RedisCacheManager redisManager = new RedisCacheManager(REDIS_HOST, REDIS_PORT);
         ElasticSearchManager esManager = new ElasticSearchManager(ES_HOST, ES_PORT);
 
         try {
-            //createCollections(authorsCRUD, booksCRUD);
-            //insertAuthors(authorsCRUD, redisManager);
+            createCollections(authorsCRUD, booksCRUD);
+            insertAuthors(authorsCRUD, redisManager);
             insertBooks(booksCRUD, redisManager, esManager);
-            //searchExample(esManager);
-            //cacheExample(redisManager);
-            //insertBookWithInvalidAuthor(booksCRUD);
-            //deleteBooksByAuthor(booksCRUD, 1);
+            searchExample(esManager);
+            cacheExample(redisManager);
+            insertBookWithInvalidAuthor(booksCRUD);
+            deleteBooksByAuthor(booksCRUD, 1);
         } catch (Exception e) {
             System.err.println("Error: " + e.getMessage());
         } finally {
@@ -54,6 +54,8 @@ public class MongoDBApp {
      * @param booksCRUD instance for working with the 'books' collection
      */
     private static void createCollections(MongoDBCRUD authorsCRUD, MongoDBCRUD booksCRUD) {
+        authorsCRUD.getCollection().drop();
+        booksCRUD.getCollection().drop();
         authorsCRUD.createCollection();
         booksCRUD.createCollection();
         System.out.println("Collections 'authors' and 'books' created.");
